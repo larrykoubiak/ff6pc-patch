@@ -73,7 +73,7 @@ def main():
     rom = open_rom('output/misc/rom.gba')
     pals = open_palettes(rom, 0x6FD8E6, 256, "bgr")
     sprites = open_sprites(rom, 0x760000,181)
-    create_image(pals[2], sprites, 64, 184, "test.gif")
+    create_image(pals[2], sprites, 64, 184, "output/test.gif")
 
 if __name__ == "__main__":
     main()
