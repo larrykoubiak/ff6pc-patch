@@ -1,12 +1,13 @@
 from struct import unpack
-from spritesheet import spritesheet
+from spritesheet import Spritesheet
 
 class gbarom:
     def __init__(self, path=None):
         self.__data = None
         self.__palettes = []
-        self.__paletteindexes = []
-        self.__spritedata = []
+        self.__spritedata = {}
+        self.__spritelayouts = []
+        self.__spritesheets = []
         if path is not None:
             self.__parseFile(path)
 
@@ -15,19 +16,25 @@ class gbarom:
         return self.__palettes
 
     @property
-    def PaletteIndexes(self):
-        return self.__paletteindexes
-
-    @property
     def SpriteData(self):
         return self.__spritedata
+
+    @property
+    def SpriteLayouts(self):
+        return self.__spritelayouts
+
+    @property
+    def SpriteSheets(self):
+        return self.__spritesheets
+
 
     def __parseFile(self, path):
         with open(path, 'rb') as f:
             self.__data = f.read()
-            self.__readPaletteData(0x6FD8E6, 256, "bgr")
-            self.__readPaletteIndexes(0XBC092,24)
             self.__readSpriteData(0x10C18,24)
+            self.__readPaletteData(0x6FD8E6, 256, "bgr")
+            self.__readSpriteLayouts(0xBB9AC,32)
+            self.__readSpriteSheetData()
 
     def __readPaletteData(self, offset, nb_palettes = 16, mode="bgr"):
         palofs = offset
@@ -49,12 +56,6 @@ class gbarom:
             palofs += 32
             self.__palettes.append(palette)
 
-    def __readPaletteIndexes(self, offset, nb_indexes):
-        palidxoffs = offset
-        for idx in range(nb_indexes):
-            palidx = self.__data[palidxoffs + idx]
-            self.__paletteindexes.append(palidx)
-
     def __readSpriteData(self, offset, nb_sheets, mode="4bpp"):
         sheetofs = offset
         bankofs = offset + 0x14C
@@ -62,17 +63,32 @@ class gbarom:
             startbank = unpack("<H",self.__data[bankofs+(idx*2):bankofs+(idx*2)+2])[0]
             startsproffs = unpack("<H",self.__data[sheetofs+(idx*2):sheetofs+(idx*2)+2])[0]
             startoffset = ((startbank & 0x7F)<<16) + startsproffs
+            spritesheetkey = ((startbank & 0xFF) << 16) + startsproffs
             endbank = unpack("<H",self.__data[bankofs+(idx*2)+2:bankofs+(idx*2)+4])[0]
             endsproffs = unpack("<H",self.__data[sheetofs+(idx*2)+2:sheetofs+(idx*2)+4])[0]
             endoffset = ((endbank & 0x7F)<<16) + endsproffs
             if endoffset == 0:
                 endoffset = startoffset + 256
-            length = (endoffset-startoffset)
-            ss = spritesheet(startoffset, length, self.__data, mode)
-            self.__spritedata.append(ss)
+            self.__spritedata[spritesheetkey] = self.__data[startoffset:endoffset]
 
+    def __readSpriteLayouts(self, offset, nb_layouts):
+        sheetofs = offset
+        for idx in range(nb_layouts):
+            offsets = unpack("<HHHHHHHH", self.__data[sheetofs+(idx*16):sheetofs+(idx*16)+16])
+            self.__spritelayouts.append(offsets)
+
+    def __readSpriteSheetData(self):
+        palidxoffs = 0XBC092
+        spridxoffs = 0xBC0AA
+        for idx in range(24):
+            palidx = self.__data[palidxoffs + idx]
+            offs = unpack("<H",self.__data[spridxoffs+(idx*3):spridxoffs+(idx*3)+2])[0]
+            bank = self.__data[spridxoffs+(idx*3)+2]
+            key = (bank << 16) + offs
+            ss = Spritesheet(self.__spritedata[key], palidx,"4bpp")
+            self.__spritesheets.append(ss)
 
 if __name__ == "__main__":
     rom = gbarom('output/misc/rom.gba')
-    for ss in rom.SpriteData:
-        print(ss.Sprites)
+    for sl in rom.SpriteLayouts:
+        print(" ".join('%04X' % s for s in sl))
