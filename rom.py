@@ -31,9 +31,9 @@ class gbarom:
     def __parseFile(self, path):
         with open(path, 'rb') as f:
             self.__data = f.read()
-            self.__readSpriteData(0x10C18,24)
+            self.__readSpriteData(0x50940E,165)
             self.__readPaletteData(0x6FD8E6, 256, "bgr")
-            self.__readSpriteLayouts(0xBB9AC,32)
+            self.__readSpriteLayouts(0x5096A2,58)
             self.__readSpriteSheetData()
 
     def __readPaletteData(self, offset, nb_palettes = 16, mode="bgr"):
@@ -58,7 +58,7 @@ class gbarom:
 
     def __readSpriteData(self, offset, nb_sheets, mode="4bpp"):
         sheetofs = offset
-        bankofs = offset + 0x14C
+        bankofs = offset + 0x14A
         for idx in range(nb_sheets):
             startbank = unpack("<H",self.__data[bankofs+(idx*2):bankofs+(idx*2)+2])[0]
             startsproffs = unpack("<H",self.__data[sheetofs+(idx*2):sheetofs+(idx*2)+2])[0]
@@ -74,7 +74,7 @@ class gbarom:
     def __readSpriteLayouts(self, offset, nb_layouts):
         sheetofs = offset
         for idx in range(nb_layouts):
-            offsets = unpack("<HHHHHHHH", self.__data[sheetofs+(idx*16):sheetofs+(idx*16)+16])
+            offsets = unpack("<HHHHHH", self.__data[sheetofs+(idx*12):sheetofs+(idx*12)+12])
             self.__spritelayouts.append(offsets)
 
     def __readSpriteSheetData(self):
