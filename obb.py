@@ -1,4 +1,6 @@
 from struct import pack, unpack
+from io import BytesIO
+import gzip
 import os
 
 class ObbFile:
@@ -56,7 +58,16 @@ class ObbFile:
             f = open(self.__path,"rb")
             f.seek(entry.Offset)
             crypteddata = f.read(entry.Size)
-            entry.Data = self.__decryptData(bytearray(crypteddata))
+            decrypteddata = self.__decryptData(bytearray(crypteddata))
+            if entry.IsCompressed:
+                in_ = BytesIO()
+                in_.write(decrypteddata)
+                in_.seek(0)
+                with gzip.GzipFile(fileobj=in_, mode='rb') as gz:
+                    unzippeddata = gz.read()
+                entry.Data = unzippeddata
+            else:
+                entry.Data = decrypteddata
 
     @property
     def Files(self):
@@ -67,10 +78,14 @@ class ObbEntry:
         self.__name = name
         self.__offset = offset
         self.__size = size
+        self.__iscompressed = name.endswith(".gz")
         self.__data = None
 
     def Export(self):
-        path = 'output/' + self.__name
+        if self.__iscompressed:
+            path = 'output/' + self.__name[:-3]
+        else:
+            path = 'output/' + self.__name
         os.makedirs(os.path.dirname(path),exist_ok=True)
         if self.__data:
             f = open(path, 'wb')
@@ -88,6 +103,10 @@ class ObbEntry:
     @property
     def Size(self):
         return self.__size
+
+    @property
+    def IsCompressed(self):
+        return self.__iscompressed
 
     @property
     def Data(self):

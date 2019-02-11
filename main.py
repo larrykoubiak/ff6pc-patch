@@ -1,15 +1,14 @@
 from filelist import FileList
 from obb import ObbFile
-
+from gba import GBA
 
 def main():
     filelist = FileList("data/main.list")
     obb = ObbFile("data/main.obb", filelist.Files)
-    files = sorted(list(obb.Files.values()), key=lambda x: x.Offset)
-    for fe in files:
-        print("Reading " + fe.Name)
-        obb.ReadEntry(fe.Name)
-        fe.Export()
+    fe = obb.Files["misc/rom.bin.gz"]
+    obb.ReadEntry(fe.Name)
+    gba = GBA(fe.Data)
+    gba.extract_sprites()
 
 if __name__ == "__main__":
     main()
