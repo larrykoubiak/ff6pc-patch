@@ -17,7 +17,7 @@ class GBA:
                 if sprite is None:
                     imagedata[destoffset] = 0
                 else:
-                    imagedata[destoffset] = sprite[(yoffset*8)+xoffset]
+                    imagedata[destoffset] = sprite.Pixels[(yoffset*8)+xoffset]
 
     def __create_image(self, palette,sprites,layouts,width,height, path):
         imagedata = bytearray(width*height)
@@ -56,20 +56,6 @@ class GBA:
         os.makedirs(os.path.dirname(path),exist_ok=True)
         image.save(path)
 
-    def __translate_PClayouts(self, origlayouts):
-        PClayouts=[]
-        translatePC = (
-            0,1,2,3,4,5,6,7,8,9,
-            10,11,12,13,14,15,16,17,29,25,
-            27,19,20,38,22,23,24,31,30,26,
-            28,32,33,34,35,21,36,37,18,39,
-            46,47)
-        for idx in range(42):
-            PClayouts.append(origlayouts[translatePC[idx]])
-        ## add horizontal dead sprite
-        PClayouts[23] = (0x0AE0, 0x0B00, 0xB20, 0x0B40, 0x0B60, 0x0B80)
-        return PClayouts
-
     def __translate_NPClayouts(self, origlayouts):
         NPClayouts=[]
         translateNPC = (
@@ -79,21 +65,26 @@ class GBA:
             NPClayouts.append(origlayouts[translateNPC[idx]])
         return NPClayouts
 
-    def extract_sprites(self):
-        PClayouts = self.__translate_PClayouts(self.__rom.SpriteLayouts)
+    def extract_character_sprites(self):
+        # PClayouts = self.__translate_PClayouts(self.__rom.SpriteLayouts["character_sprites"])
         PCs = list(range(22))
         for idx in PCs:
-            ss = self.__rom.SpriteSheets[idx]
-            palette = self.__rom.Palettes[8 if idx== 18 else ss.PaletteId]
-            # palette[0:3] = [0, 100, 0]
-            self.__create_image(palette, ss.Sprites, PClayouts, 256, 128, "output/character/char" + '%02x' % idx + ".bmp")
-        NPClayouts = self.__translate_NPClayouts(self.__rom.SpriteLayouts)
-        ss = self.__rom.SpriteSheets[22]
-        palette = self.__rom.Palettes[ss.PaletteId]
-        palette[0:3] = [0, 100, 0]
-        self.__create_image(palette, ss.Sprites, NPClayouts, 256, 128, "output/character/char16.bmp")
+            ss = self.__rom.SpriteSheets["character_sprites"][idx]
+            palette = self.__rom.Palettes["character_sprites"][ss.PaletteId]
+            self.__create_image(
+                palette,
+                ss.Sprites,
+                self.__rom.SpriteLayouts["character_sprites"], 
+                256,
+                128,
+                "output/character/char" + '%02x' % idx + ".bmp")
+        # NPClayouts = self.__translate_NPClayouts(self.__rom.SpriteLayouts["character_sprites"])
+        # ss = self.__rom.SpriteSheets["character_sprites"][22]
+        # palette = self.__rom.Palettes["character_sprites"][ss.PaletteId]
+        # palette[0:3] = [0, 100, 0]
+        # self.__create_image(palette, ss.Sprites, NPClayouts, 256, 128, "output/character/char16.bmp")
 
 if __name__ == "__main__":
     rom = open("output/misc/rom.bin", "rb").read()
     gba = GBA(rom)
-    gba.extract_sprites()
+    gba.extract_character_sprites()

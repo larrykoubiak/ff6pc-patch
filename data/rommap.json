@@ -1,0 +1,54 @@
+{
+    "character_sprites":
+    {
+        "palette": {
+            "offset": 7330022,
+            "length": 16,
+            "format": "bgr"
+        },
+        "spritedata": {
+            "offset": 5280782,
+            "length": 22,
+            "mode": "pointer"
+        },
+        "spritelayout": {
+            "offset": 5281442,
+            "length": 58,
+            "frame_width": 16,
+            "frame_height": 24,
+            "frame_map": [
+                [[0,false,false],[1,false,false]],
+                [[2,false,false],[3,false,false]],
+                [[4,false,false],[5,false,false]]
+            ],
+            "exceptions": [
+                {
+                    "id": 38,
+                    "value": [2784, 2816, 2848, 2880, 2912, 2944],
+                    "description": "add missing horizontal slain frame"
+                }
+            ]
+        },
+        "spritesheet": {
+            "palid_offset": 770194,
+            "sprid_offset": 770218,
+            "length": 22,
+            "mode": "4bpp",
+            "exceptions": [
+                {
+                    "id": 18,
+                    "field": "palidx",
+                    "value": 8,
+                    "description": "fix Esper Terra palette"
+                }
+            ]
+        },
+        "layout_translate": [
+            0,1,2,3,4,5,6,7,8,9,
+            10,11,12,13,14,15,16,17,29,25,
+            27,19,20,38,22,23,24,31,30,26,
+            28,32,33,34,35,21,36,37,18,39,
+            46,47
+        ]
+    }
+}
