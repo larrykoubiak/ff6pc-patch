@@ -1,38 +1,73 @@
 {
     "character_sprites":
     {
-        "palette": {
+        "palettes": {
             "offset": 7330022,
             "length": 16,
             "format": "bgr"
         },
-        "spritedata": {
+        "spriteoffsets": {
             "offset": 5280782,
-            "length": 22,
+            "length": 165,
             "mode": "pointer"
         },
-        "spritelayout": {
+        "spritelayouts": {
             "offset": 5281442,
             "length": 58,
-            "frame_width": 16,
-            "frame_height": 24,
-            "frame_map": [
+            "framemap": [
                 [[0,false,false],[1,false,false]],
                 [[2,false,false],[3,false,false]],
                 [[4,false,false],[5,false,false]]
             ],
+            "layout_translate": [
+                0,1,2,3,4,5,6,7,8,9,
+                10,11,12,13,14,15,16,17,29,25,
+                27,19,20,38,22,23,24,31,30,26,
+                28,32,33,34,35,21,36,37,18,39,
+                46,47
+            ],
             "exceptions": [
                 {
+                    "id": 2,
+                    "field":"framemap",
+                    "value": [
+                        [[0,false,false],[1,false,false]],
+                        [[2,false,false],[3,false,false]],
+                        [[5,true,false],[4,true,false]]
+                    ]
+                },
+                {
+                    "id": 5,
+                    "field":"framemap",
+                    "value": [
+                        [[0,false,false],[1,false,false]],
+                        [[2,false,false],[3,false,false]],
+                        [[5,true,false],[4,true,false]]
+                    ]
+                },
+                {
                     "id": 38,
+                    "field": "framemap",
+                    "value": [
+                        [[0,false,false],[1,false,false],[2,false,false]],
+                        [[3,false,false],[4,false,false],[5,false,false]]
+                    ],
+                    "description": "add missing horizontal slain frame"
+                },
+                {
+                    "id": 38,
+                    "field": "offsets",
                     "value": [2784, 2816, 2848, 2880, 2912, 2944],
                     "description": "add missing horizontal slain frame"
                 }
             ]
         },
-        "spritesheet": {
+        "spritesheets": {
             "palid_offset": 770194,
             "sprid_offset": 770218,
             "length": 22,
+            "width": 256,
+            "height": 128,
             "mode": "4bpp",
             "exceptions": [
                 {
@@ -42,13 +77,6 @@
                     "description": "fix Esper Terra palette"
                 }
             ]
-        },
-        "layout_translate": [
-            0,1,2,3,4,5,6,7,8,9,
-            10,11,12,13,14,15,16,17,29,25,
-            27,19,20,38,22,23,24,31,30,26,
-            28,32,33,34,35,21,36,37,18,39,
-            46,47
-        ]
+        }
     }
 }

@@ -8,7 +8,7 @@ def main():
     fe = obb.Files["misc/rom.bin.gz"]
     obb.ReadEntry(fe.Name)
     gba = GBA(fe.Data)
-    gba.extract_sprites()
+    gba.extract_character_sprites()
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,5 @@
 from struct import unpack
-from spritesheet import Spritesheet
+from spritesheet import Spritesheet, Layout
 from json import load
 
 class gbarom:
@@ -35,17 +35,16 @@ class gbarom:
         for table_name, v in self.__rommap.items():
             self.__readPaletteData(
                 table_name, 
-                v["palette"])
+                v["palettes"])
             self.__readSpriteDataFromOffsets(
                 table_name,
-                v["spritedata"])
+                v["spriteoffsets"])
             self.__readSpriteLayouts(
                 table_name,
-                v["spritelayout"],
-                None if "layout_translate" not in v else v["layout_translate"])
+                v["spritelayouts"])
             self.__readSpriteSheetData(
                 table_name, 
-                v["spritesheet"])
+                v["spritesheets"])
         ## Portraits
         # self.__readPaletteData(0x5FE55E,"character_portraits",23, "bgr")
         # self.__readSpritesheetBySpriteCount(0x5FE83E,"character_portraits",25,23)
@@ -78,16 +77,16 @@ class gbarom:
             palofs += 32
             self.__palettes[table_name].append(palette)
 
-    def __readSpritesheetBySpriteCount(self, offset, table_name, nb_sprites, nb_sheets, mode="4bpp"):
-        self.__spritedata[table_name] = {}
-        self.__spritesheets[table_name] = []
-        sheetofs = offset
-        for idx in range(nb_sheets):
-            startoffset = sheetofs + (idx * nb_sprites * 32)
-            endoffset = startoffset + (nb_sprites * 32)
-            self.__spritedata[table_name][idx] = self.__data[startoffset:endoffset]
-            ss = Spritesheet(self.__data[startoffset:endoffset], idx)
-            self.__spritesheets[table_name].append(ss)
+    # def __readSpritesheetBySpriteCount(self, offset, table_name, nb_sprites, nb_sheets, mode="4bpp"):
+    #     self.__spritedata[table_name] = {}
+    #     self.__spritesheets[table_name] = []
+    #     sheetofs = offset
+    #     for idx in range(nb_sheets):
+    #         startoffset = sheetofs + (idx * nb_sprites * 32)
+    #         endoffset = startoffset + (nb_sprites * 32)
+    #         self.__spritedata[table_name][idx] = self.__data[startoffset:endoffset]
+    #         ss = Spritesheet(self.__data[startoffset:endoffset], idx)
+    #         self.__spritesheets[table_name].append(ss)
 
     def __readSpriteDataFromOffsets(self,  table_name, params):
         self.__spritedata[table_name] = {}
@@ -101,19 +100,23 @@ class gbarom:
                 endoffset = self.__read24(offset,(idx * 2) + 2, 0x14A) & 0x7FFFFF
             self.__spritedata[table_name][spritesheetkey] = self.__data[startoffset:endoffset]
 
-    def __readSpriteLayouts(self, table_name, params, translate_table=None):
+    def __readSpriteLayouts(self, table_name, params):
         layouts = []
         sheetofs = params["offset"]
         for idx in range(params["length"]):
             offsets = unpack("<HHHHHH", self.__data[sheetofs+(idx*12):sheetofs+(idx*12)+12])
-            layouts.append(offsets)
+            layout = Layout(list(offsets), params["framemap"])
+            layouts.append(layout)
         if "exceptions" in params:
             for exception in params["exceptions"]:
-                layouts[exception["id"]] = tuple(exception["value"])
-        if translate_table is not None:
+                if exception["field"]=="offsets":
+                    layouts[exception["id"]].Offsets = exception["value"]
+                elif exception["field"]=="framemap":
+                    layouts[exception["id"]].ReadFrameMap(exception["value"])
+        if "layout_translate" in params:
             newlayouts = []
-            for idx in range(len(translate_table)):
-                newlayouts.append(layouts[translate_table[idx]])
+            for idx in range(len(params["layout_translate"])):
+                newlayouts.append(layouts[params["layout_translate"][idx]])
             self.__spritelayouts[table_name] = newlayouts
         else:
             self.__spritelayouts[table_name] = layouts
@@ -123,7 +126,13 @@ class gbarom:
         for idx in range(params["length"]):
             palidx = self.__data[params["palid_offset"] + idx]
             key = self.__read24(params["sprid_offset"],idx * 3)
-            ss = Spritesheet(self.__spritedata[table_name][key], palidx, params["mode"])
+            ss = Spritesheet(
+                self.__spritedata[table_name][key],
+                palidx,
+                params["width"],
+                params["height"],
+                self.__spritelayouts[table_name],
+                params["mode"])
             self.__spritesheets[table_name].append(ss)
         if "exceptions" in params:
             for exception in params["exceptions"]:
