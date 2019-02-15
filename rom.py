@@ -30,25 +30,26 @@ class gbarom:
     def SpriteSheets(self):
         return self.__spritesheets
 
-
     def __parseBytes(self, data):
         for table_name, v in self.__rommap.items():
             self.__readPaletteData(
                 table_name, 
                 v["palettes"])
-            self.__readSpriteDataFromOffsets(
-                table_name,
-                v["spriteoffsets"])
-            self.__readSpriteLayouts(
-                table_name,
-                v["spritelayouts"])
-            self.__readSpriteSheetData(
-                table_name, 
-                v["spritesheets"])
-        ## Portraits
-        # self.__readPaletteData(0x5FE55E,"character_portraits",23, "bgr")
-        # self.__readSpritesheetBySpriteCount(0x5FE83E,"character_portraits",25,23)
-        # self.__spritelayouts["character_portraits"] = [(0,1,2,3)]
+            if "spritearray" in v:
+                self.__readSpritesheetFromArray(
+                    table_name,
+                    v["spritearray"]
+                )
+            else:
+                self.__readSpriteDataFromOffsets(
+                    table_name,
+                    v["spriteoffsets"])
+                self.__readSpriteLayouts(
+                    table_name,
+                    v["spritelayouts"])
+                self.__readSpriteSheetData(
+                    table_name, 
+                    v["spritesheets"])
 
     def __read24(self, start, offset,bankoffset=2):
         offs = unpack("<H",self.__data[start + offset:start + offset + 2])[0]
@@ -77,16 +78,21 @@ class gbarom:
             palofs += 32
             self.__palettes[table_name].append(palette)
 
-    # def __readSpritesheetBySpriteCount(self, offset, table_name, nb_sprites, nb_sheets, mode="4bpp"):
-    #     self.__spritedata[table_name] = {}
-    #     self.__spritesheets[table_name] = []
-    #     sheetofs = offset
-    #     for idx in range(nb_sheets):
-    #         startoffset = sheetofs + (idx * nb_sprites * 32)
-    #         endoffset = startoffset + (nb_sprites * 32)
-    #         self.__spritedata[table_name][idx] = self.__data[startoffset:endoffset]
-    #         ss = Spritesheet(self.__data[startoffset:endoffset], idx)
-    #         self.__spritesheets[table_name].append(ss)
+    def __readSpritesheetFromArray(self, table_name, params):
+        self.__spritesheets[table_name] = []
+        sheetofs = params["offset"]
+        for idx in range(params["length"]):
+            startoffset = sheetofs + (idx * params["nb_sprites"] * 32)
+            endoffset = startoffset + (params["nb_sprites"] * 32)
+            layout = Layout(params["layout"], params["framemap"])
+            ss = Spritesheet(
+                self.__data[startoffset:endoffset],
+                idx,
+                params["width"],
+                params["height"],
+                [layout,],
+                params["mode"])
+            self.__spritesheets[table_name].append(ss)
 
     def __readSpriteDataFromOffsets(self,  table_name, params):
         self.__spritedata[table_name] = {}

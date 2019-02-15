@@ -34,8 +34,6 @@ class Spritesheet:
     def ImageData(self):
         return self.__imagedata
 
-
-
     def __readSprites(self):
         curofs = 0
         nbsprites = len(self.__data) >> (5 if self.__mode=="4bpp" else 6)
@@ -55,7 +53,8 @@ class Spritesheet:
 
     def __draw(self):
         framecount = 0
-        numcols = int(self.__width/24)
+        max_dim = max(self.__frames[0].Width, self.__frames[0].Height)
+        numcols = int(self.__width/max_dim)
         for frame in self.__frames:
             row = int((framecount) / numcols)
             col = ((framecount) % numcols)
